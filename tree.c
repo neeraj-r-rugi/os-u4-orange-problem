@@ -274,7 +274,7 @@ int tree_from_index(ObjectID *id_out) {
     if (!id_out) return -1;
 
     Index index;
-    if (load_index_for_tree(&index) != 0) return -1;
+    if (load_index_for_tree(&index) != 0) return -1; //Load Index for uphelf
 
     return write_tree_level(&index, "", id_out);
 }
