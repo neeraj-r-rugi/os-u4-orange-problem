@@ -14,7 +14,7 @@
 //
 // PROVIDED functions: index_find, index_remove, index_status
 // TODO functions:     index_load, index_save, index_add
-
+#include <errno.h>
 #include "index.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,8 +23,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <dirent.h>
-#include <errno.h>
-#include <time.h>
+int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out);
 
 // ─── PROVIDED ────────────────────────────────────────────────────────────────
 
@@ -139,15 +138,14 @@ int index_status(const Index *index) {
 int index_load(Index *index) {
     // TODO: Implement index loading
     // (See Lab Appendix for logical steps)
-        index->count = 0;
+    index->count = 0;
 
     FILE *f = fopen(INDEX_FILE, "r");
     if (!f) {
         if (errno == ENOENT) return 0;
         return -1;
     }
-
-        char hex[HASH_HEX_SIZE + 1];
+    char hex[HASH_HEX_SIZE + 1];
     while (index->count < MAX_INDEX_ENTRIES) {
         IndexEntry *e = &index->entries[index->count];
         int rc = fscanf(f, "%o %64s %llu %u %511s\n",
@@ -177,7 +175,7 @@ int cmp_entries(const void *a, const void *b) {
 int index_save(const Index *index) {
     // TODO: Implement atomic index saving
     // (See Lab Appendix for logical steps)
-        // Sort a copy of the entries by path
+    // Sort a copy of the entries by path
     Index sorted = *index;
     
     qsort(sorted.entries, sorted.count, sizeof(IndexEntry), cmp_entries);
@@ -218,7 +216,7 @@ int index_save(const Index *index) {
 int index_add(Index *index, const char *path) {
     // TODO: Implement file staging
     // (See Lab Appendix for logical steps)
-        // Read the file contents
+    // Read the file contents
     FILE *f = fopen(path, "rb");
     if (!f) {
         fprintf(stderr, "error: cannot open '%s'\n", path);
@@ -229,7 +227,7 @@ int index_add(Index *index, const char *path) {
     fseek(f, 0, SEEK_SET);
     if (file_size < 0) { fclose(f); return -1; }
 
-    void *contents = malloc((size_t)file_size + 1);
+    void *contents = malloc((size_t)file_size);
     if (!contents) { fclose(f); return -1; }
     size_t nread = fread(contents, 1, (size_t)file_size, f);
     fclose(f);
